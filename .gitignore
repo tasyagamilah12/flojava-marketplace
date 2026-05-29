@@ -1,0 +1,20 @@
+```gitignore
+# dependencies
+node_modules
+
+# environment
+.env
+.env.local
+frontend/.env
+frontend/.env.local
+backend/.env
+backend/.env.local
+
+# build
+.next
+dist
+build
+
+# macOS
+.DS_Store
+```
