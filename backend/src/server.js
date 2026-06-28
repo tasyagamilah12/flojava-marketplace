@@ -1,3 +1,6 @@
+// backend/src/server.js — VERSI LENGKAP, timpa file lama dengan ini.
+// Perubahan: tambah import + registrasi cartRoutes dan orderRoutes.
+
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
@@ -9,8 +12,9 @@ const authRoutes = require("./routes/authRoutes");
 const testRoutes = require("./routes/testRoutes");
 const productRoutes = require("./routes/productRoutes");
 const vendorRoutes = require("./routes/vendorRoutes");
-// 1. IMPORT ROUTES ADMIN DI SINI
-const adminRoutes = require("./routes/adminRoutes"); 
+const adminRoutes = require("./routes/adminRoutes");
+const cartRoutes = require("./routes/cartRoutes");     // ← BARU
+const orderRoutes = require("./routes/orderRoutes");   // ← BARU
 
 const app = express();
 
@@ -24,8 +28,9 @@ app.use("/api/auth", authRoutes);
 app.use("/api/test", testRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/vendor", vendorRoutes);
-// 2. DAFTARKAN ROUTES ADMIN DI SINI
-app.use("/api/admin", adminRoutes); 
+app.use("/api/admin", adminRoutes);
+app.use("/api/cart", cartRoutes);     // ← BARU
+app.use("/api/orders", orderRoutes);  // ← BARU
 
 const verifyToken = require("./middleware/authMiddleware");
 
