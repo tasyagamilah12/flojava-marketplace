@@ -29,7 +29,7 @@ import {
   formatStockMessageSimple,
   truncateProductDescription,
   truncateProductName,
-} from '../utils/formatters';
+} from '../../../utils/formatters';
 
 function cn(...classes) {
   return classes.filter(Boolean).join(' ');

@@ -16,7 +16,7 @@
  */
 
 import React, { useId } from 'react';
-import { formatRatingScore, formatReviewCount } from '../../utils/formatters';
+import { formatRatingScore, formatReviewCount } from '../../../../utils/formatters';
 
 const STAR_COUNT = 5;
 
