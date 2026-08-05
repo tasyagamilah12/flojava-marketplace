@@ -49,3 +49,9 @@ const PORT = process.env.PORT || 5050;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
+
+const reviewRoutes = require("./routes/reviewRoutes");
+app.use("/api/reviews", reviewRoutes);
+
+const couponRoutes = require("./routes/couponRoutes");
+app.use("/api/coupons", couponRoutes);

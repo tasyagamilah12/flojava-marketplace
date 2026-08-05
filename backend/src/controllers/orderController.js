@@ -1,8 +1,8 @@
 // backend/src/controllers/orderController.js
 const db = require("../config/db");
+const { createSnapToken } = require("../utils/midtransService");
 
 // POST /api/orders/buy-now — body: { product_id, quantity, shipping_address }
-// Membuat satu order langsung TANPA lewat keranjang.
 exports.buyNow = async (req, res) => {
   try {
     const customerId = req.user.id;
@@ -48,10 +48,6 @@ exports.buyNow = async (req, res) => {
 };
 
 // POST /api/orders/checkout — body: { shipping_address }
-// Mengubah SEMUA isi keranjang customer jadi order (satu baris order per produk),
-// lalu mengosongkan keranjang. Dibungkus transaction supaya atomik — kalau salah
-// satu produk gagal (stok habis di tengah jalan), semuanya dibatalkan, bukan
-// setengah-setengah.
 exports.checkoutCart = async (req, res) => {
   const pool = db;
   const connection = await pool.getConnection();
@@ -106,7 +102,6 @@ exports.checkoutCart = async (req, res) => {
       createdOrderIds.push(result.insertId);
     }
 
-    // Kosongkan keranjang setelah semua order berhasil dibuat
     await connection.execute("DELETE FROM cart_items WHERE customer_id = ?", [customerId]);
 
     await connection.commit();
@@ -149,9 +144,42 @@ exports.getMyOrders = async (req, res) => {
   }
 };
 
+// GET /api/orders/:id/pay — Mendapatkan Midtrans Snap Token untuk pesanan tertentu
+exports.getPaymentToken = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const customerId = req.user.id;
+
+    const [orders] = await db.execute(
+      `SELECT o.*, u.name, u.email FROM orders o
+       JOIN users u ON o.customer_id = u.id
+       WHERE o.id = ? AND o.customer_id = ?`,
+      [id, customerId]
+    );
+
+    if (orders.length === 0) {
+      return res.status(404).json({ message: "Pesanan tidak ditemukan" });
+    }
+
+    const order = orders[0];
+
+    if (order.status !== 'pending') {
+      return res.status(400).json({ message: "Pesanan ini sudah diproses atau dibayar" });
+    }
+
+    const snapToken = await createSnapToken(order, { name: order.name, email: order.email });
+
+    res.status(200).json({
+      message: "Snap token berhasil dibuat",
+      token: snapToken,
+    });
+  } catch (error) {
+    console.error("GET PAYMENT TOKEN ERROR:", error);
+    res.status(500).json({ message: "Gagal menghubungkan ke payment gateway" });
+  }
+};
+
 // ── Helper ──────────────────────────────────────────────────────────────
-// Pakai alamat dari body request kalau dikirim; kalau tidak, fallback ke
-// alamat yang sudah tersimpan di profil user (kolom users.address).
 async function resolveShippingAddress(customerId, bodyAddress) {
   if (bodyAddress && bodyAddress.trim().length > 0) {
     return bodyAddress.trim();
